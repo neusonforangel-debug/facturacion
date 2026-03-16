@@ -1,0 +1,116 @@
+<?php
+
+$hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
+if ($hostname) {
+    Route::domain($hostname->fqdn)->group(function() {
+
+        Route::post('login', 'Api\Tenant\AuthController@login');
+        Route::post('loginRes', 'Api\Tenant\LoginResController@login');
+        Route::get('/restaurant/list-waiter', 'Tenant\WaiterController@listRecords');
+
+        Route::middleware(['auth:api', 'locked.tenant'])->group(function() {
+
+            Route::prefix('restaurant')->group(function () {
+                Route::get('/items', 'Tenant\RestaurantController@items');
+                Route::post('/items/price', 'Tenant\RestaurantController@savePrice');
+                Route::post('/items/restaurant-favorite', 'Tenant\RestaurantController@setRestaurantFavoriteItem');
+                Route::post('/order/change-table', 'Tenant\RestaurantController@changeTablePedido');
+
+                Route::get('/categories', 'Tenant\RestaurantController@categories');
+                Route::get('/configurations', 'Tenant\RestaurantConfigurationController@record');
+                Route::get('/waiters', 'Tenant\WaiterController@records');
+                Route::get('/tablesAndEnv', 'Tenant\RestaurantConfigurationController@tablesAndEnv');
+                Route::post('/table/toggle-active', 'Tenant\RestaurantConfigurationController@toggleActive');
+                Route::post('/table', 'Tenant\RestaurantConfigurationController@createTable');
+                Route::post('/table/{id}', 'Tenant\RestaurantConfigurationController@saveTable');
+                Route::get('/table/{id}', 'Tenant\RestaurantConfigurationController@getTable');
+                Route::get('/notes', 'Tenant\NotesController@records');
+                Route::get('/available-sellers', 'Tenant\RestaurantConfigurationController@getSellers');
+                Route::get('/correct_pin_check/{id}/{pin}', 'Tenant\RestaurantConfigurationController@correctPinCheck');
+                Route::post('/label-table/save', 'Tenant\RestaurantConfigurationController@saveLabelTable');
+                Route::post('/command-item/save', 'Tenant\RestaurantItemOrderStatusController@saveItemOrder');
+                Route::get('/command-status/items/{id}', 'Tenant\RestaurantItemOrderStatusController@getStatusItems');
+                Route::get('/command-status/served/{tableId}', 'Tenant\RestaurantItemOrderStatusController@isProductsCommandStatusServer');
+                Route::get('/command-status/set/{id}', 'Tenant\RestaurantItemOrderStatusController@setStatusItem');
+                Route::post('/storeCustomer', 'Tenant\Api\MobileController@storeCustomer');
+                Route::get('/getcustomer/{Type}/{number}', 'Tenant\Api\MobileController@getCustomerByTypeAndNumber');
+
+                Route::prefix('tables/group')->group(function () {
+                    Route::post('/create', 'Tenant\TableGroupController@createGroup');
+                    Route::post('/add', 'Tenant\TableGroupController@addTable');
+                    Route::post('/remove', 'Tenant\TableGroupController@removeTable');
+                    Route::post('/disband', 'Tenant\TableGroupController@disbandGroup');
+                    Route::post('/recalculate', 'Tenant\TableGroupController@calculateTotal');
+                });
+
+            });
+            //Company
+            Route::get('company', 'Tenant\Api\CompanyController@record');
+            //Caja
+            Route::post('cash/restaurant', 'Api\Tenant\CashController@storeRestaurant');
+            Route::post('cash/cash_document', 'Api\Tenant\CashController@cash_document');
+            Route::get('cash/opening_cash', 'Api\Tenant\CashController@opening_cash');
+            Route::get('cash/opening_cash_check/{cash_id}', 'Api\Tenant\CashController@opening_cash_check');
+            Route::get('cash/available-restaurant', 'Api\Tenant\CashController@cash_available');
+            Route::post('cash/open', 'Tenant\CashController@store');
+            Route::get('cash/close/{cash}', 'Api\Tenant\CashController@close');
+            //Facturacion
+            //Route::post('co-documents', 'Modules\Factcolombia1\Http\Controllers\Tenant\DocumentController@store');
+            //MOBILE
+            Route::get('document/series', 'Tenant\Api\MobileController@getSeries');
+            Route::get('document/tables', 'Tenant\Api\MobileController@tables');
+            Route::get('document/customers', 'Tenant\Api\MobileController@customers');
+            Route::post('document/email', 'Tenant\Api\MobileController@document_email');
+            Route::post('sale-note', 'Tenant\Api\SaleNoteController@store');
+            Route::get('sale-note/series', 'Tenant\Api\SaleNoteController@series');
+            Route::get('sale-note/lists', 'Tenant\Api\SaleNoteController@lists');
+            Route::post('item', 'Tenant\Api\MobileController@item');
+            Route::post('person', 'Tenant\Api\MobileController@person');
+            Route::get('document/search-items', 'Tenant\Api\MobileController@searchItems');
+            Route::get('document/search-customers', 'Tenant\Api\MobileController@searchCustomers');
+
+            Route::post('documents', 'Tenant\Api\DocumentController@store');
+            Route::get('documents/lists', 'Tenant\Api\DocumentController@lists');
+            Route::post('summaries', 'Tenant\Api\SummaryController@store');
+            Route::post('voided', 'Tenant\Api\VoidedController@store');
+            Route::post('retentions', 'Tenant\Api\RetentionController@store');
+            Route::post('dispatches', 'Tenant\Api\DispatchController@store');
+            Route::post('documents/send', 'Tenant\Api\DocumentController@send');
+            Route::post('summaries/status', 'Tenant\Api\SummaryController@status');
+            Route::post('voided/status', 'Tenant\Api\VoidedController@status');
+            Route::get('services/ruc/{number}', 'Tenant\Api\ServiceController@ruc');
+            Route::get('services/dni/{number}', 'Tenant\Api\ServiceController@dni');
+            Route::post('services/consult_cdr_status', 'Tenant\Api\ServiceController@consultCdrStatus');
+            Route::post('perceptions', 'Tenant\Api\PerceptionController@store');
+
+            Route::post('documents_server', 'Tenant\Api\DocumentController@storeServer');
+            Route::get('document_check_server/{external_id}', 'Tenant\Api\DocumentController@documentCheckServer');
+
+        });
+        Route::get('documents/search/customers', 'Tenant\DocumentController@searchCustomers');
+
+        Route::post('services/validate_cpe', 'Tenant\Api\ServiceController@validateCpe');
+        Route::post('services/consult_status', 'Tenant\Api\ServiceController@consultStatus');
+        Route::post('documents/status', 'Tenant\Api\ServiceController@documentStatus');
+
+        Route::get('sendserver/{document_id}/{query?}', 'Tenant\DocumentController@sendServer');
+
+    });
+}else{
+    Route::domain(env('APP_URL_BASE'))->group(function() {
+
+        //reseller
+        Route::post('reseller/detail', 'System\Api\ResellerController@resellerDetail');
+        Route::post('reseller/lockedAdmin', 'System\Api\ResellerController@lockedAdmin');
+
+        //configuration
+        Route::get('config-login/record', 'System\Api\ConfigurationController@record');
+        Route::post('config-login', 'System\Api\ConfigurationController@store');
+        Route::post('config-login/upload', 'System\Api\ConfigurationController@uploadImage');
+
+
+
+
+    });
+
+}
